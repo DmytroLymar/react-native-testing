@@ -34,5 +34,11 @@ export function useTodosStorage() {
         saveTodos(todos);
     }, [todos]);
 
-    return { todos, setTodos, isLoading };
+    const getTodoById = (id: string) => todos.find((t) => t.id === id) ?? null;
+
+    const updateTodo = (id: string, patch: Partial<Todo>) => {
+        setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    };
+
+    return { todos, setTodos, isLoading, getTodoById, updateTodo };
 }

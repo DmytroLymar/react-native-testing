@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import type { Todo } from '../types/todo';
@@ -9,9 +10,12 @@ type Props = {
 };
 
 export function TodoItem({ item, onToggle, onDelete }: Props) {
+    const router = useRouter();
     return (
         <View style={styles.item}>
-            <Text style={styles.text}>{item.title}</Text>
+            <Pressable onPress={() => router.push({ pathname: '/todo/[id]', params: { id: item.id } })}>
+                <Text style={styles.text}>{item.title}</Text>
+            </Pressable>
             <Switch value={item.done} onValueChange={() => onToggle(item.id)} />
             <Pressable style={styles.deleteButton} onPress={() => onDelete(item.id)}>
                 <Text style={styles.deleteButtonText}>Delete</Text>
