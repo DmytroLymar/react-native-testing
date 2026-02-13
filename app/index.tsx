@@ -21,7 +21,14 @@ export default function HomeScreen() {
         const title = text.trim();
         if (!title) return;
 
-        const newTodo: Todo = { id: makeId(), title, done: false };
+        const newTodo: Todo = {
+            id: makeId(),
+            title,
+            done: false,
+            createdAt: new Date().toISOString(),
+            description: '',
+            plannedAt: null
+        };
         setTodos((prev) => [newTodo, ...prev]);
         setText('');
         Keyboard.dismiss();
