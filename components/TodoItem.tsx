@@ -13,7 +13,10 @@ export function TodoItem({ item, onToggle, onDelete }: Props) {
     const router = useRouter();
     return (
         <View style={styles.item}>
-            <Pressable onPress={() => router.push({ pathname: '/todo/[id]', params: { id: item.id } })}>
+            <Pressable
+                style={styles.textContainer}
+                onPress={() => router.push({ pathname: '/todo/[id]', params: { id: item.id } })}
+            >
                 <Text style={styles.text}>{item.title}</Text>
             </Pressable>
             <Switch value={item.done} onValueChange={() => onToggle(item.id)} />
@@ -29,6 +32,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         gap: 10,
+        justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 12,
@@ -36,9 +40,11 @@ const styles = StyleSheet.create({
         borderColor: '#eee',
         borderRadius: 12
     },
-    text: {
-        fontSize: 16,
+    textContainer: {
         flex: 1
+    },
+    text: {
+        fontSize: 16
     },
     deleteButton: {
         height: 30,

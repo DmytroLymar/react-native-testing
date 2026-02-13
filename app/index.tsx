@@ -1,3 +1,4 @@
+import { TodoFilter, TodoStatusFilter } from '@/components/TodoFilter';
 import { TodoInput } from '@/components/TodoInput';
 import { TodoItem } from '@/components/TodoItem';
 import { useTodosStorage } from '@/hooks/useTodosStorage';
@@ -13,6 +14,8 @@ function makeId() {
 export default function HomeScreen() {
     const [text, setText] = React.useState('');
     const { todos, setTodos, isLoading } = useTodosStorage();
+    const [query, setQuery] = React.useState('');
+    const [status, setStatus] = React.useState<TodoStatusFilter>('all');
 
     const addTodo = React.useCallback(() => {
         const title = text.trim();
@@ -31,6 +34,18 @@ export default function HomeScreen() {
         setTodos((prev) => prev.filter((t) => t.id !== id));
     };
 
+    const filteredTodos = React.useMemo(() => {
+        const q = query.trim().toLowerCase();
+
+        return todos.filter((t) => {
+            const byText = !q || t.title.toLowerCase().includes(q);
+
+            const byStatus = status === 'all' ? true : status === 'done' ? t.done : !t.done;
+
+            return byText && byStatus;
+        });
+    }, [todos, query, status]);
+
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.container}>
@@ -42,17 +57,20 @@ export default function HomeScreen() {
                         <ActivityIndicator />
                     </View>
                 ) : (
-                    <FlatList
-                        style={styles.list}
-                        data={todos}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <TodoItem item={item} onToggle={handleToggleTodo} onDelete={handleDeleteTodo} />
-                        )}
-                        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                        ListEmptyComponent={<Text style={styles.empty}>No tasks yet. Add your first one 👇</Text>}
-                        keyboardShouldPersistTaps='handled'
-                    />
+                    <>
+                        <TodoFilter query={query} onQueryChange={setQuery} status={status} onStatusChange={setStatus} />
+                        <FlatList
+                            style={styles.list}
+                            data={filteredTodos}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <TodoItem item={item} onToggle={handleToggleTodo} onDelete={handleDeleteTodo} />
+                            )}
+                            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                            ListEmptyComponent={<Text style={styles.empty}>No tasks yet. Add your first one 👇</Text>}
+                            keyboardShouldPersistTaps='handled'
+                        />
+                    </>
                 )}
             </View>
         </SafeAreaView>
