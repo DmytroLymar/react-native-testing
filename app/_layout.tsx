@@ -1,24 +1,33 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import '@/notifications/setup';
+import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import React from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function RootStack() {
+    const { theme, c } = useTheme();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+    return (
+        <>
+            <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+            <Stack
+                screenOptions={{
+                    headerStyle: { backgroundColor: c.card },
+                    headerTintColor: c.text,
+                    contentStyle: { backgroundColor: c.bg }
+                }}
+            >
+                <Stack.Screen name='index' options={{ title: 'To-Do' }} />
+                <Stack.Screen name='todo/[id]' options={{ title: 'Todo' }} />
+            </Stack>
+        </>
+    );
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    return (
+        <ThemeProvider>
+            <RootStack />
+        </ThemeProvider>
+    );
 }
