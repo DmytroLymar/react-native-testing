@@ -1,4 +1,5 @@
 import { useTodosStorage } from '@/hooks/useTodosStorage';
+import { cancelTodoNotification, scheduleTodoNotification } from '@/notifications';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -21,7 +22,6 @@ export default function TodoDetails() {
 
     const [plannedDate, setPlannedDate] = React.useState<Date | null>(null);
 
-    // керування пікерами (на Android зручно розділити date і time)
     const [showDate, setShowDate] = React.useState(false);
     const [showTime, setShowTime] = React.useState(false);
 
@@ -35,34 +35,46 @@ export default function TodoDetails() {
     if (isLoading) return <Text>Loading...</Text>;
     if (!todo) return <Text>Todo not found</Text>;
 
-    const onSave = () => {
+    const onSave = async () => {
         const nextTitle = title.trim();
         if (!nextTitle) return;
+
+        if (todo.notificationId) {
+            await cancelTodoNotification(todo.notificationId);
+        }
+
+        let newNotificationId: string | null = null;
+
+        if (plannedDate && !todo.done && plannedDate.getTime() > Date.now()) {
+            newNotificationId = await scheduleTodoNotification({
+                title: `Todo: ${nextTitle}`,
+                body: description.trim() || 'Time to do it',
+                when: plannedDate
+            });
+        }
 
         updateTodo(todoId, {
             title: nextTitle,
             description: description.trim(),
-            plannedAt: plannedDate ? plannedDate.toISOString() : null
+            plannedAt: plannedDate ? plannedDate.toISOString() : null,
+            notificationId: newNotificationId
         });
 
-        router.back();
+        router.replace('/');
     };
 
     const onClearPlanned = () => setPlannedDate(null);
 
     const onChangeDate = (_event: DateTimePickerEvent, selected?: Date) => {
-        // iOS: може викликатися багато разів; Android: треба закрити
         if (Platform.OS === 'android') setShowDate(false);
 
         if (!selected) return;
 
-        // зберігаємо дату, час залишаємо з поточного plannedDate або 00:00
         const base = plannedDate ?? new Date();
         const next = new Date(base);
         next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
         setPlannedDate(next);
 
-        // на Android часто зручно одразу показати time picker
         if (Platform.OS === 'android') setShowTime(true);
     };
 
@@ -71,7 +83,6 @@ export default function TodoDetails() {
 
         if (!selected) return;
 
-        // зберігаємо час, дату беремо з plannedDate або сьогодні
         const base = plannedDate ?? new Date();
         const next = new Date(base);
         next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
@@ -79,13 +90,10 @@ export default function TodoDetails() {
     };
 
     const openPicker = () => {
-        // якщо plannedDate ще нема — створимо зараз, щоб було що редагувати
         if (!plannedDate) setPlannedDate(new Date());
 
-        // iOS: можна показати один picker mode="datetime"
-        // Android: часто краще date -> time
         if (Platform.OS === 'ios') {
-            setShowDate(true); // використаємо mode="datetime" нижче
+            setShowDate(true);
         } else {
             setShowDate(true);
         }
@@ -117,20 +125,17 @@ export default function TodoDetails() {
                 </Pressable>
             </View>
 
-            {/* iOS: покажемо один datetime picker */}
             {Platform.OS === 'ios' && showDate && (
                 <DateTimePicker
                     value={plannedDate ?? new Date()}
                     mode='datetime'
                     display='spinner'
                     onChange={(e, d) => {
-                        // на iOS можна лишити відкритим або закривати як тобі зручно
                         if (d) setPlannedDate(d);
                     }}
                 />
             )}
 
-            {/* Android: date picker */}
             {Platform.OS === 'android' && showDate && (
                 <DateTimePicker
                     value={plannedDate ?? new Date()}
@@ -140,7 +145,6 @@ export default function TodoDetails() {
                 />
             )}
 
-            {/* Android: time picker */}
             {Platform.OS === 'android' && showTime && (
                 <DateTimePicker
                     value={plannedDate ?? new Date()}
