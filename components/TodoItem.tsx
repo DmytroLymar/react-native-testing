@@ -1,3 +1,5 @@
+import { useTheme } from '@/theme/ThemeProvider';
+import { t } from '@/theme/tokens';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
@@ -17,10 +19,11 @@ function formatPlanned(iso: string) {
 
 export function TodoItem({ item, onToggle, onDelete }: Props) {
     const router = useRouter();
+    const { c } = useTheme();
+    const styles = React.useMemo(() => makeStyles(c), [c]);
 
     return (
         <View style={styles.item}>
-            {/* Left: content */}
             <Pressable
                 style={styles.content}
                 onPress={() => router.push({ pathname: '/todo/[id]', params: { id: item.id } })}
@@ -45,9 +48,9 @@ export function TodoItem({ item, onToggle, onDelete }: Props) {
                 )}
             </Pressable>
 
-            {/* Right: actions */}
             <View style={styles.actions}>
                 <Switch value={item.done} onValueChange={() => onToggle(item.id)} />
+
                 <Pressable style={styles.deleteButton} onPress={() => onDelete(item.id)}>
                     <Text style={styles.deleteButtonText}>Delete</Text>
                 </Pressable>
@@ -56,70 +59,65 @@ export function TodoItem({ item, onToggle, onDelete }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
-    item: {
-        flexDirection: 'row',
-        alignItems: 'stretch',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: '#eee',
-        borderRadius: 12,
-        gap: 12
-    },
-
-    content: {
-        flex: 1,
-        minWidth: 0,
-        justifyContent: 'center'
-    },
-
-    titleRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        gap: 10
-    },
-
-    title: {
-        flex: 1,
-        minWidth: 0,
-        fontSize: 16,
-        fontWeight: '600'
-    },
-    titleDone: {
-        opacity: 0.5,
-        textDecorationLine: 'line-through'
-    },
-
-    planned: {
-        maxWidth: '45%',
-        fontSize: 12,
-        opacity: 0.75
-    },
-
-    description: {
-        marginTop: 4,
-        fontSize: 14,
-        opacity: 0.75
-    },
-
-    actions: {
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 8
-    },
-
-    deleteButton: {
-        height: 32,
-        minWidth: 70,
-        paddingHorizontal: 10,
-        justifyContent: 'center',
-        backgroundColor: '#eeeeee',
-        borderRadius: 10
-    },
-    deleteButtonText: {
-        textAlign: 'center',
-        color: '#ff0000',
-        fontWeight: '600'
-    }
-});
+const makeStyles = (c: ReturnType<typeof useTheme>['c']) =>
+    StyleSheet.create({
+        item: {
+            flexDirection: 'row',
+            alignItems: 'stretch',
+            paddingVertical: t.space.md,
+            paddingHorizontal: t.space.md,
+            borderWidth: 1,
+            borderColor: c.border,
+            borderRadius: t.radius.md,
+            gap: t.space.md,
+            backgroundColor: c.card
+        },
+        content: {
+            flex: 1,
+            minWidth: 0,
+            justifyContent: 'center'
+        },
+        titleRow: {
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            gap: t.space.sm
+        },
+        title: {
+            flex: 1,
+            minWidth: 0,
+            fontSize: t.font.lg,
+            fontWeight: '700',
+            color: c.text
+        },
+        titleDone: { opacity: 0.5, textDecorationLine: 'line-through' },
+        planned: {
+            maxWidth: '45%',
+            fontSize: t.font.sm,
+            color: c.muted
+        },
+        description: {
+            marginTop: 4,
+            fontSize: t.font.md,
+            color: c.muted
+        },
+        actions: {
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: t.space.xs
+        },
+        deleteButton: {
+            height: 32,
+            minWidth: 76,
+            paddingHorizontal: t.space.sm,
+            justifyContent: 'center',
+            borderRadius: t.radius.sm,
+            borderWidth: 1,
+            borderColor: c.border,
+            backgroundColor: c.inputBg
+        },
+        deleteButtonText: {
+            textAlign: 'center',
+            color: c.danger,
+            fontWeight: '700'
+        }
+    });
